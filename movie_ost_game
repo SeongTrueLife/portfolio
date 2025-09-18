@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영화 OST 맞추기 퀴즈 (랜덤)</title>
+    <!-- Tone.js CDN: 자바스크립트로 음악을 연주하기 위한 라이브러리 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+        :root {
+            --bg-color: #1a1d24;
+            --surface-color: #2c313a;
+            --primary-color: #f5c518; /* IMDb 느낌의 노란색 */
+            --text-color: #f0f0f0;
+            --correct-color: #28a745;
+            --wrong-color: #dc3545;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .game-container {
+            background-color: var(--surface-color);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        h1, h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: #ccc;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: #121212;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-top: 1rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(245, 197, 24, 0.4);
+        }
+
+        /* 퀴즈 화면 스타일 */
+        #quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            font-size: 1.2rem;
+        }
+        
+        #progress { font-weight: 700; }
+        #score { color: var(--primary-color); }
+        
+        #play-melody-btn {
+            font-size: 3rem;
+            background: none;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 2rem;
+        }
+        
+        #play-melody-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .option-btn {
+            background-color: #4a505a;
+            color: var(--text-color);
+            padding: 15px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            border-color: var(--primary-color);
+        }
+
+        .option-btn.correct {
+            background-color: var(--correct-color);
+            border-color: var(--correct-color);
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-color);
+            border-color: var(--wrong-color);
+        }
+
+        @media (max-width: 480px) {
+            #options-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <!-- 시작 화면 -->
+        <div id="start-screen" class="screen active">
+            <h1>영화 OST 퀴즈</h1>
+            <p>매번 무작위로 10개의 문제가 출제됩니다. <br>재생 버튼을 누르고 어떤 영화의 OST인지 맞춰보세요!</p>
+            <button id="start-btn" class="btn">게임 시작</button>
+        </div>
+
+        <!-- 퀴즈 진행 화면 -->
+        <div id="quiz-screen" class="screen">
+            <div id="quiz-header">
+                <span id="progress"></span>
+                <span id="score"></span>
+            </div>
+            <p>이 멜로디는 어떤 영화의 OST일까요?</p>
+            <button id="play-melody-btn" class="btn">▶</button>
+            <div id="options-container"></div>
+        </div>
+
+        <!-- 결과 화면 -->
+        <div id="end-screen" class="screen">
+            <h2>게임 종료!</h2>
+            <p>당신의 최종 점수는...</p>
+            <h1 id="final-score"></h1>
+            <button id="restart-btn" class="btn">다시하기</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 전체 퀴즈 데이터 ---
+        const allQuizData = [
+            { // 1
+                melody: [{ note: "B4", duration: "8n" }, { note: "E5", duration: "4n." }, { note: "G5", duration: "8n" }, { note: "F#5", duration: "4n" }, { note: "E5", duration: "4n." }, { note: "B4", duration: "8n" }, { note: "A5", duration: "4n" }, { note: "F#5", duration: "2n" }],
+                options: ["반지의 제왕", "해리포터", "나니아 연대기", "어벤져스"],
+                answer: "해리포터",
+            },
+            { // 2
+                melody: [{ note: "G4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "C5", duration: "2n" }, { note: "G5", duration: "2n" }, { note: "F#5", duration: "4n" }, { note: "E5", duration: "4n" }, { note: "D#5", duration: "4n" }, { note: "C6", duration: "2n" }, { note: "G5", duration: "2n" }],
+                options: ["스타트렉", "인터스텔라", "스타워즈", "가디언즈 오브 갤럭시"],
+                answer: "스타워즈",
+            },
+            { // 3
+                melody: [{ note: "G4", duration: "2n" }, { note: "A4", duration: "2n" }, { note: "B4", duration: "2n" }, { note: "G4", duration: "2n" }, { note: "B4", duration: "4n." }, { note: "A4", duration: "8n" }, { note: "G4", duration: "1n" }],
+                options: ["인디아나 존스", "E.T.", "킹콩", "쥬라기 공원"],
+                answer: "쥬라기 공원",
+            },
+            { // 4
+                melody: [{ note: "F4", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "C5", duration: "2n" }, { note: "C5", duration: "4n" }, { note: "D5", duration: "4n" }, { note: "C5", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "F4", duration: "2n" }],
+                options: ["알라딘", "라이온 킹", "인어공주", "포카혼타스"],
+                answer: "라이온 킹",
+            },
+            { // 5
+                melody: [{ note: "D4", duration: "8n" }, { note: "D4", duration: "8n" }, { note: "D4", duration: "8n" }, { note: "D4", duration: "8n" }, { note: "D4", duration: "8n" }, { note: "E4", duration: "8n" }, { note: "F4", duration: "4n" }, { note: "F4", duration: "4n" }, { note: "F4", duration: "8n" }, { note: "G4", duration: "8n" }, { note: "A4", duration: "4n" }, { note: "A4", duration: "4n" }],
+                options: ["캐리비안의 해적", "반지의 제왕", "글래디에이터", "킹덤 오브 헤븐"],
+                answer: "캐리비안의 해적",
+            },
+            { // 6
+                melody: [{ note: "G4", duration: "4n" }, { note: "C5", duration: "4n." }, { note: "D#5", duration: "8n" }, { note: "D5", duration: "4n" }, { note: "C5", duration: "4n." }, { note: "G#4", duration: "8n" }, { note: "C5", duration: "4n" }, { note: "A#4", duration: "4n" }, { note: "G#4", duration: "4n" }, { note: "G4", duration: "2n" }],
+                options: ["대부", "스카페이스", "좋은 친구들", "원스 어폰 어 타임 인 아메리카"],
+                answer: "대부",
+            },
+            { // 7
+                melody: [{ note: "G5", duration: "8n" }, { note: "G5", duration: "8n" }, { note: "A#5", duration: "4n" }, { note: "C6", duration: "4n" }, { note: "G5", duration: "8n" }, { note: "G5", duration: "8n" }, { note: "F5", duration: "4n" }, { note: "F#5", duration: "4n" }],
+                options: ["007 시리즈", "본 시리즈", "미션 임파서블", "킹스맨"],
+                answer: "미션 임파서블",
+            },
+            { // 8
+                melody: [{ note: "F4", duration: "8n" }, { note: "G4", duration: "8n" }, { note: "A4", duration: "4n" }, { note: "G4", duration: "8n" }, { note: "F4", duration: "8n" }, { note: "G4", duration: "4n" }, { note: "C5", duration: "4n" }, { note: "A#4", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "F4", duration: "2n" }],
+                options: ["라라랜드", "위대한 쇼맨", "비긴 어게인", "타이타닉"],
+                answer: "타이타닉",
+            },
+            { // 9
+                melody: [{ note: "C4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "F#4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "C4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "E4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "C4", duration: "2n" }],
+                options: ["인터스텔라", "그래비티", "혹성탈출", "인셉션"],
+                answer: "인터스텔라",
+            },
+            { // 10
+                melody: [{ note: "E4", duration: "8n" }, { note: "G4", duration: "8n" }, { note: "C5", duration: "4n" }, { note: "E4", duration: "8n" }, { note: "G4", duration: "8n" }, { note: "B4", duration: "4n" }, { note: "E4", duration: "8n" }, { note: "G4", duration: "8n" }, { note: "A4", duration: "4n" }, { note: "G4", duration: "2n" }],
+                options: ["어벤져스", "다크 나이트", "맨 오브 스틸", "스파이더맨"],
+                answer: "어벤져스",
+            },
+            { // 11
+                melody: [{ note: "D5", duration: "4n" }, { note: "A#4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "D4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "A#4", duration: "4n" }, { note: "D5", duration: "2n" }],
+                options: ["하울의 움직이는 성", "센과 치히로의 행방불명", "이웃집 토토로", "모노노케 히메"],
+                answer: "하울의 움직이는 성",
+            },
+            { // 12
+                melody: [{ note: "G4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "B4", duration: "4n" }, { note: "C5", duration: "2n" }, { note: "B4", duration: "4n" }, { note: "A4", duration: "2n" }],
+                options: ["UP", "토이스토리", "겨울왕국", "모아나"],
+                answer: "겨울왕국",
+            },
+            { // 13
+                melody: [{ note: "D4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "B4", duration: "4n" }, { note: "C5", duration: "2n" }, { note: "G4", duration: "2n" }],
+                options: ["백 투 더 퓨처", "고스트버스터즈", "E.T.", "터미네이터"],
+                answer: "백 투 더 퓨처",
+            },
+            { // 14
+                melody: [{ note: "A4", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "D5", duration: "2n" }, { note: "C#5", duration: "2n" }],
+                options: ["포레스트 검프", "쇼생크 탈출", "인생은 아름다워", "시네마 천국"],
+                answer: "시네마 천국",
+            },
+            { // 15
+                melody: [{ note: "A4", duration: "4n" }, { note: "F4", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "D5", duration: "2n" }, { note: "A4", duration: "4n" }, { note: "G#4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "F4", duration: "2n" }],
+                options: ["펄프 픽션", "킬빌", "저수지의 개들", "장고"],
+                answer: "킬빌",
+            },
+            { // 16
+                melody: [{ note: "E4", duration: "4n" }, { note: "D#4", duration: "4n" }, { note: "E4", duration: "4n" }, { note: "D#4", duration: "4n" }, { note: "E4", duration: "4n" }, { note: "B3", duration: "4n" }, { note: "D4", duration: "4n" }, { note: "C4", duration: "4n" }, { note: "A3", duration: "2n" }],
+                options: ["제임스 본드", "미션 임파서블", "다이하드", "리썰 웨폰"],
+                answer: "제임스 본드",
+            },
+            { // 17
+                melody: [{ note: "G4", duration: "4n" }, { note: "C5", duration: "2n" }, { note: "G4", duration: "4n" }, { note: "C5", duration: "2n" }, { note: "G4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "F4", duration: "4n" }, { note: "E4", duration: "4n" }, { note: "D4", duration: "2n" }],
+                options: ["록키", "슈퍼맨", "배트맨", "원더우먼"],
+                answer: "슈퍼맨",
+            },
+            { // 18
+                melody: [{ note: "C4", duration: "8n" }, { note: "C4", duration: "8n" }, { note: "C4", duration: "8n" }, { note: "G4", duration: "4n." }, { note: "F4", duration: "8n" }, { note: "E4", duration: "8n" }, { note: "D4", duration: "8n" }, { note: "C5", duration: "2n" }],
+                options: ["포레스트 검프", "라이언 일병 구하기", "캐스트 어웨이", "터미널"],
+                answer: "포레스트 검프",
+            },
+            { // 19
+                melody: [{ note: "C4", duration: "4n" }, { note: "C4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "G4", duration: "2n" }],
+                options: ["학교 가는 길", "섬집 아기", "반짝 반짝 작은 별", "비행기"],
+                answer: "반짝 반짝 작은 별",
+            },
+            { // 20
+                melody: [{ note: "G4", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "F4", duration: "4n" }, { note: "E4", duration: "2n" }, { note: "D4", duration: "2n" }],
+                options: ["알라딘", "미녀와 야수", "뮬란", "노트르담의 꼽추"],
+                answer: "미녀와 야수",
+            },
+            { // 21
+                melody: [{ note: "C5", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "F4", duration: "4n" }, { note: "C5", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "F4", duration: "4n" }, { note: "G4", duration: "2n" }, { note: "E4", duration: "2n" }],
+                options: ["라라랜드", "위플래쉬", "코코", "소울"],
+                answer: "라라랜드",
+            },
+            { // 22
+                melody: [{ note: "D4", duration: "4n" }, { note: "A4", duration: "4n" }, { note: "G4", duration: "2n" }, { note: "F#4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "A4", duration: "2n" }],
+                options: ["쇼생크 탈출", "글래디에이터", "브레이브하트", "반지의 제왕"],
+                answer: "반지의 제왕",
+            },
+            { // 23
+                melody: [{ note: "G4", duration: "4n" }, { note: "F#4", duration: "4n" }, { note: "G4", duration: "4n" }, { note: "D4", duration: "4n" }, { note: "E4", duration: "2n" }, { note: "C4", duration: "2n" }],
+                options: ["센과 치히로의 행방불명", "이웃집 토토로", "벼랑 위의 포뇨", "바람계곡의 나우시카"],
+                answer: "이웃집 토토로",
+            },
+            { // 24
+                melody: [{ note: "D5", duration: "4n" }, { note: "E5", duration: "4n" }, { note: "C5", duration: "2n" }, { note: "A4", duration: "4n" }, { note: "G4", duration: "2n." }],
+                options: ["오징어 게임", "기생충", "올드보이", "부산행"],
+                answer: "기생충",
+            },
+            { // 25
+                melody: [{ note: "A4", duration: "2n" }, { note: "F#4", duration: "2n" }, { note: "D4", duration: "2n" }, { note: "A3", duration: "1n" }],
+                options: ["2001 스페이스 오디세이", "블레이드 러너", "시계태엽 오렌지", "샤이닝"],
+                answer: "2001 스페이스 오디세이",
+            }
+        ];
+
+
+        // --- 2. DOM 요소 가져오기 ---
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const endScreen = document.getElementById('end-screen');
+
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const playMelodyBtn = document.getElementById('play-melody-btn');
+
+        const progressElem = document.getElementById('progress');
+        const scoreElem = document.getElementById('score');
+        const optionsContainer = document.getElementById('options-container');
+        const finalScoreElem = document.getElementById('final-score');
+
+        // --- 3. 게임 상태 변수 ---
+        let currentQuestionIndex;
+        let score;
+        let synth; // Tone.js 신디사이저 객체
+        let gameQuestions = []; // 이번 게임에서 사용할 10개의 랜덤 질문
+        let isMelodyPlaying = false;
+
+        // --- 4. 게임 로직 함수 ---
+
+        // 배열을 무작위로 섞는 함수 (Fisher-Yates Shuffle)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startGame() {
+            // 오디오 컨텍스트 시작 (사용자 상호작용 후)
+            if (!synth) {
+                Tone.start();
+                synth = new Tone.Synth().toDestination();
+            }
+
+            // 전체 퀴즈 데이터에서 10개를 무작위로 선택
+            gameQuestions = shuffleArray([...allQuizData]).slice(0, 10);
+            
+            currentQuestionIndex = 0;
+            score = 0;
+            
+            // 화면 전환
+            startScreen.classList.remove('active');
+            endScreen.classList.remove('active');
+            quizScreen.classList.add('active');
+
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const currentQuestion = gameQuestions[currentQuestionIndex];
+            
+            // 진행 상황 및 점수 업데이트
+            progressElem.textContent = `문제 ${currentQuestionIndex + 1} / ${gameQuestions.length}`;
+            scoreElem.textContent = `점수: ${score}`;
+            
+            // 선택지 버튼 초기화
+            optionsContainer.innerHTML = '';
+            currentQuestion.options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option-btn');
+                button.addEventListener('click', () => selectAnswer(option, button));
+                optionsContainer.appendChild(button);
+            });
+        }
+        
+        async function playCurrentMelody() {
+            if (isMelodyPlaying) return;
+            isMelodyPlaying = true;
+            playMelodyBtn.disabled = true;
+
+            const currentMelody = gameQuestions[currentQuestionIndex].melody;
+            const now = Tone.now();
+            let time = 0;
+
+            currentMelody.forEach(note => {
+                synth.triggerAttackRelease(note.note, note.duration, now + time);
+                time += Tone.Time(note.duration).toSeconds();
+            });
+            
+            // 멜로디 연주가 끝난 후 버튼 다시 활성화
+            // Tone.Transport.scheduleOnce(() => {
+            //     isMelodyPlaying = false;
+            //     playMelodyBtn.disabled = false;
+            // }, `+${time}`);
+
+            // setTimeout을 이용한 간단한 구현
+             setTimeout(() => {
+                isMelodyPlaying = false;
+                playMelodyBtn.disabled = false;
+            }, time * 1000);
+        }
+
+        function selectAnswer(selectedOption, button) {
+            const currentQuestion = gameQuestions[currentQuestionIndex];
+            const isCorrect = selectedOption === currentQuestion.answer;
+            
+            // 모든 버튼 비활성화
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = true;
+                // 정답 버튼 표시
+                if (btn.textContent === currentQuestion.answer) {
+                    btn.classList.add('correct');
+                }
+            });
+
+            if (isCorrect) {
+                score += 10;
+                scoreElem.textContent = `점수: ${score}`;
+                button.classList.add('correct');
+            } else {
+                button.classList.add('wrong');
+            }
+            
+            // 1.5초 후 다음 문제로
+            setTimeout(() => {
+                currentQuestionIndex++;
+                if (currentQuestionIndex < gameQuestions.length) {
+                    showQuestion();
+                } else {
+                    showEndScreen();
+                }
+            }, 1500);
+        }
+
+        function showEndScreen() {
+            quizScreen.classList.remove('active');
+            endScreen.classList.add('active');
+            const maxScore = gameQuestions.length * 10;
+            finalScoreElem.textContent = `${score} / ${maxScore} 점`;
+        }
+
+        // --- 5. 이벤트 리스너 연결 ---
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', () => {
+             endScreen.classList.remove('active');
+             startScreen.classList.add('active');
+        });
+        playMelodyBtn.addEventListener('click', playCurrentMelody);
+
+    </script>
+</body>
+</html>
+
