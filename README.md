@@ -6,4 +6,4 @@
  - AL, ML, DL
 
 # 라이브 데모
- - 포토폴리오 사이트
+ - 포토폴리오 사이트 : https://seongtruelife.github.io/portfolio/
