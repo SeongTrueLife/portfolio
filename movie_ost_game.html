@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>영화 OST 퀴즈 (사운드 강화)</title>
+    <title>영화 OST 퀴즈 (확장판)</title>
     <!-- Tone.js CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <style>
@@ -171,35 +171,40 @@
     </div>
 
     <script>
-        // --- 1. 전체 퀴즈 데이터 (BPM, 화음 등 개선) ---
+        // --- 1. 전체 퀴즈 데이터 (멜로디 확장) ---
         const allQuizData = [
-            { // 1. 해리포터 (Celesta 느낌)
+            { // 1. 해리포터
                 bpm: 140,
                 melody: [
                     { time: '0:0', note: 'B4', duration: '8n' }, { time: '0:0:2', note: 'E5', duration: '4n.' }, { time: '0:1:2', note: 'G5', duration: '8n' },
                     { time: '0:2', note: 'F#5', duration: '4n' }, { time: '0:3', note: 'E5', duration: '4n.' }, { time: '1:0:2', note: 'B5', duration: '8n' },
                     { time: '1:1', note: 'A5', duration: '4n' }, { time: '1:2', note: 'F#5', duration: '2n' },
+                    { time: '2:0', note: 'E5', duration: '4n.' }, { time: '2:1:2', note: 'G5', duration: '8n' }, { time: '2:2', note: 'F#5', duration: '4n' }, { time: '2:3', note: 'D#5', duration: '4n' },
+                    { time: '3:0', note: 'F5', duration: '2n' }, { time: '3:2', note: 'B4', duration: '1n' },
                 ],
                 options: ["반지의 제왕", "해리포터", "나니아 연대기", "어벤져스"],
                 answer: "해리포터",
             },
-            { // 2. 스타워즈 (웅장한 화음)
+            { // 2. 스타워즈
                 bpm: 110,
                 melody: [
                     { time: '0:0', note: ['G4', 'D4'], duration: '8n' }, { time: '0:0:2', note: ['G4', 'D4'], duration: '8n' }, { time: '0:1', note: ['G4', 'D4'], duration: '8n' },
                     { time: '0:2', note: ['C5', 'G4'], duration: '2n' }, { time: '1:0', note: ['G5', 'D5'], duration: '2n' },
                     { time: '1:2', note: 'F#5', duration: '4n' }, { time: '1:3', note: 'E5', duration: '4n' }, { time: '2:0', note: 'D#5', duration: '4n' },
                     { time: '2:1', note: ['C6', 'G5'], duration: '2n' }, { time: '2:3', note: ['G5', 'D5'], duration: '2n' },
+                    { time: '3:1', note: 'F#5', duration: '4n' }, { time: '3:2', note: 'E5', duration: '4n' }, { time: '3:3', note: 'D#5', duration: '4n' },
+                    { time: '4:0', note: ['C6', 'G5'], duration: '2n' }, { time: '4:2', note: ['G5', 'D5'], duration: '2n' }
                 ],
                 options: ["스타트렉", "인터스텔라", "스타워즈", "가디언즈 오브 갤럭시"],
                 answer: "스타워즈",
             },
-            { // 3. 쥬라기 공원 (부드러운 화음)
+            { // 3. 쥬라기 공원
                 bpm: 80,
                 melody: [
                     { time: '0:0', note: ['G4','D4'], duration: '2n' }, { time: '0:2', note: ['A4','E4'], duration: '2n' }, 
                     { time: '1:0', note: ['B4','F#4'], duration: '2n' }, { time: '1:2', note: ['G4','D4'], duration: '2n' },
                     { time: '2:0', note: 'B4', duration: '4n.' }, { time: '2:1:2', note: 'A4', duration: '8n' }, { time: '2:2', note: 'G4', duration: '1n' },
+                    { time: '3:2', note: 'G5', duration: '2n'}, { time: '4:0', note: 'F#5', duration: '2n' }, { time: '4:2', note: 'D5', duration: '1n'}
                 ],
                 options: ["인디아나 존스", "E.T.", "킹콩", "쥬라기 공원"],
                 answer: "쥬라기 공원",
@@ -209,54 +214,87 @@
                 melody: [
                     { time: '0:0', note: "F4", duration: "4n" }, { time: '0:1', note: "A4", duration: "4n" }, { time: '0:2', note: "C5", duration: "2n" },
                     { time: '1:0', note: "C5", duration: "4n" }, { time: '1:1', note: "D5", duration: "4n" }, { time: '1:2', note: "C5", duration: "4n" }, { time: '1:3', note: "A4", duration: "4n" },
-                    { time: '2:0', note: "F4", duration: "2n" },
+                    { time: '2:0', note: "F4", duration: '2n' }, { time: '2:2', note: "G4", duration: '2n'},
+                    { time: '3:0', note: "A4", duration: '4n' }, { time: '3:1', note: "G4", duration: '4n' }, { time: '3:2', note: "F4", duration: '2n' }
                 ],
                 options: ["알라딘", "라이온 킹", "인어공주", "포카혼타스"],
                 answer: "라이온 킹",
             },
-            { // 5. 캐리비안의 해적 (빠른 템포)
+            { // 5. 캐리비안의 해적
                 bpm: 140,
                 melody: [
                     { time: '0:0', note: 'D4', duration: '8n' }, { time: '0:0:2', note: 'D4', duration: '8n' }, { time: '0:1', note: 'D4', duration: '8n' }, { time: '0:1:2', note: 'D4', duration: '8n' },
                     { time: '0:2', note: 'D4', duration: '8n' }, { time: '0:2:2', note: 'E4', duration: '8n' }, { time: '0:3', note: 'F4', duration: '4n' }, 
-                    { time: '1:0', note: 'F4', duration: '4n' }, { time: '1:1', note: 'F4', duration: '8n' }, { time: '1:1:2', note: 'G4', duration: '8n' }, { time: '1:2', note: 'A4', duration: '4n' }, { time: '1:3', note: 'A4', duration: '4n' }
+                    { time: '1:0', note: 'F4', duration: '4n' }, { time: '1:1', note: 'F4', duration: '8n' }, { time: '1:1:2', note: 'G4', duration: '8n' }, { time: '1:2', note: 'A4', duration: '4n' }, { time: '1:3', note: 'A4', duration: '4n' },
+                    { time: '2:0', note: 'A4', duration: '8n' }, { time: '2:0:2', note: 'B4', duration: '8n' }, { time: '2:1', note: 'C5', duration: '4n' }, { time: '2:2', note: 'C5', duration: '4n' },
+                    { time: '2:3', note: 'C5', duration: '8n' }, { time: '2:3:2', note: 'D5', duration: '8n' }, { time: '3:0', note: 'A4', duration: '2n'}
                 ],
                 options: ["캐리비안의 해적", "반지의 제왕", "글래디에이터", "킹덤 오브 헤븐"],
                 answer: "캐리비안의 해적",
             },
-            // --- 나머지 곡들은 간결하게 단일 멜로디와 BPM만 추가 ---
-            { bpm: 90, melody: [{ time: '0:0', note: "G4", duration: "4n" }, { time: '0:1', note: "C5", duration: "4n." }, { time: '0:2:2', note: "D#5", duration: "8n" }], options: ["대부", "스카페이스", "좋은 친구들", "원스 어폰 어 타임 인 아메리카"], answer: "대부" },
-            { bpm: 170, melody: [{ time: '0:0', note: "G5", duration: "8n" }, { time: '0:0:2', note: "G5", duration: "8n" }, { time: '0:1', note: "A#5", duration: "4n" }], options: ["007 시리즈", "본 시리즈", "미션 임파서블", "킹스맨"], answer: "미션 임파서블" },
-            { bpm: 95, melody: [{ time: '0:0', note: "F4", duration: "8n" }, { time: '0:0:2', note: "G4", duration: "8n" }, { time: '0:1', note: "A4", duration: "4n" }, { time: '0:2', note: "G4", duration: "8n" }, { time: '0:2:2', note: "F4", duration: "8n" }, { time: '0:3', note: "G4", duration: "4n" }], options: ["라라랜드", "위대한 쇼맨", "비긴 어게인", "타이타닉"], answer: "타이타닉" },
-            { bpm: 70, melody: [{ time: '0:0', note: "C4", duration: "4n" }, { time: '0:1', note: "G4", duration: "4n" }, { time: '0:2', note: "F#4", duration: "4n" }, { time: '0:3', note: "G4", duration: "4n" }], options: ["인터스텔라", "그래비티", "혹성탈출", "인셉션"], answer: "인터스텔라" },
-            { bpm: 130, melody: [{ time: '0:0', note: "E4", duration: "8n" }, { time: '0:0:2', note: "G4", duration: "8n" }, { time: '0:1', note: "C5", duration: "4n" }, { time: '0:2', note: "E4", duration: "8n" }, { time: '0:2:2', note: "G4", duration: "8n" }, { time: '0:3', note: "B4", duration: "4n" }], options: ["어벤져스", "다크 나이트", "맨 오브 스틸", "스파이더맨"], answer: "어벤져스" },
-            { bpm: 90, melody: [{ time: '0:0', note: "D5", duration: "4n" }, { time: '0:1', note: "A#4", duration: "4n" }, { time: '0:2', note: "G4", duration: "4n" }, { time: '0:3', note: "D4", duration: "4n" }], options: ["하울의 움직이는 성", "센과 치히로의 행방불명", "이웃집 토토로", "모노노케 히메"], answer: "하울의 움직이는 성" },
-            { bpm: 100, melody: [{ time: '0:0', note: "G4", duration: "4n" }, { time: '0:1', note: "G4", duration: "4n" }, { time: '0:2', note: "A4", duration: "4n" }, { time: '0:3', note: "B4", duration: "4n" }], options: ["UP", "토이스토리", "겨울왕국", "모아나"], answer: "겨울왕국" },
-            { bpm: 115, melody: [{ time: '0:0', note: "D4", duration: "4n" }, { time: '0:1', note: "G4", duration: "4n" }, { time: '0:2', note: "A4", duration: "4n" }, { time: '0:3', note: "B4", duration: "4n" }], options: ["백 투 더 퓨처", "고스트버스터즈", "E.T.", "터미네이터"], answer: "백 투 더 퓨처" },
-            { bpm: 80, melody: [{ time: '0:0', note: "A4", duration: "4n" }, { time: '0:1', note: "A4", duration: "4n" }, { time: '0:2', note: "G4", duration: "4n" }, { time: '0:3', note: "A4", duration: "4n" }], options: ["포레스트 검프", "쇼생크 탈출", "인생은 아름다워", "시네마 천국"], answer: "시네마 천국" },
-            { bpm: 160, melody: [{ time: '0:0', note: "A4", duration: "4n" }, { time: '0:1', note: "F4", duration: "4n" }, { time: '0:2', note: "A4", duration: "4n" }, { time: '0:3', note: "D5", duration: "2n" }], options: ["펄프 픽션", "킬빌", "저수지의 개들", "장고"], answer: "킬빌" },
-            { bpm: 132, melody: [{ time: '0:0', note: "E4", duration: "4n" }, { time: '0:1', note: "D#4", duration: "4n" }, { time: '0:2', note: "E4", duration: "4n" }, { time: '0:3', note: "D#4", duration: "4n" }], options: ["제임스 본드", "미션 임파서블", "다이하드", "리썰 웨폰"], answer: "제임스 본드" },
-            { bpm: 100, melody: [{ time: '0:0', note: "G4", duration: "4n" }, { time: '0:1', note: "C5", duration: "2n" }, { time: '0:3', note: "G4", duration: "4n" }], options: ["록키", "슈퍼맨", "배트맨", "원더우먼"], answer: "슈퍼맨" },
-            { bpm: 75, melody: [{ time: '0:0', note: "C4", duration: "8n" }, { time: '0:0:2', note: "C4", duration: "8n" }, { time: '0:1', note: "C4", duration: "8n" }, { time: '0:1:2', note: "G4", duration: "4n." }], options: ["포레스트 검프", "라이언 일병 구하기", "캐스트 어웨이", "터미널"], answer: "포레스트 검프" },
-            { bpm: 100, melody: [{ time: '0:0', note: "C4", duration: "4n" }, { time: '0:1', note: "C4", duration: "4n" }, { time: '0:2', note: "G4", duration: "4n" }, { time: '0:3', note: "G4", duration: "4n" }], options: ["학교 가는 길", "섬집 아기", "반짝 반짝 작은 별", "비행기"], answer: "반짝 반짝 작은 별" },
-            { bpm: 90, melody: [{ time: '0:0', note: "G4", duration: "4n" }, { time: '0:1', note: "A4", duration: "4n" }, { time: '0:2', note: "G4", duration: "4n" }, { time: '0:3', note: "F4", duration: "4n" }], options: ["알라딘", "미녀와 야수", "뮬란", "노트르담의 꼽추"], answer: "미녀와 야수" },
-            { bpm: 125, melody: [{ time: '0:0', note: "C5", duration: "4n" }, { time: '0:1', note: "A4", duration: "4n" }, { time: '0:2', note: "F4", duration: "4n" }, { time: '0:3', note: "C5", duration: "4n" }], options: ["라라랜드", "위플래쉬", "코코", "소울"], answer: "라라랜드" },
-            { bpm: 72, melody: [{ time: '0:0', note: "D4", duration: "4n" }, { time: '0:1', note: "A4", duration: "4n" }, { time: '0:2', note: "G4", duration: "2n" }], options: ["쇼생크 탈출", "글래디에이터", "브레이브하트", "반지의 제왕"], answer: "반지의 제왕" },
-            { bpm: 130, melody: [{ time: '0:0', note: "G4", duration: "4n" }, { time: '0:1', note: "F#4", duration: "4n" }, { time: '0:2', note: "G4", duration: "4n" }, { time: '0:3', note: "D4", duration: "4n" }], options: ["센과 치히로의 행방불명", "이웃집 토토로", "벼랑 위의 포뇨", "바람계곡의 나우시카"], answer: "이웃집 토토로" },
-            { bpm: 130, melody: [{ time: '0:0', note: "D5", duration: "4n" }, { time: '0:1', note: "E5", duration: "4n" }, { time: '0:2', note: "C5", duration: "2n" }], options: ["오징어 게임", "기생충", "올드보이", "부산행"], answer: "기생충" },
-            { bpm: 60, melody: [{ time: '0:0', note: ["A4", "E4", "C#4"], duration: "2n" }, { time: '0:2', note: ["F#4", "C#4", "A3"], duration: "2n" }], options: ["2001 스페이스 오디세이", "블레이드 러너", "시계태엽 오렌지", "샤이닝"], answer: "2001 스페이스 오디세이" }
+            { // 6. 타이타닉
+                bpm: 95,
+                melody: [
+                    { time: '0:0', note: "F4", duration: "8n" }, { time: '0:0:2', note: "G4", duration: "8n" }, { time: '0:1', note: "A4", duration: "4n" }, { time: '0:2', note: "G4", duration: "8n" }, { time: '0:2:2', note: "F4", duration: "8n" }, { time: '0:3', note: "G4", duration: "4n" },
+                    { time: '1:0', note: "C5", duration: "2n" }, { time: '1:2', note: "A#4", duration: "2n" },
+                    { time: '2:0', note: "A4", duration: "4n" }, { time: '2:1', note: "G4", duration: "4n" }, { time: '2:2', note: "F4", duration: "2n" }, { time: '3:0', note: "F4", duration: "4n" }, { time: '3:1', note: "D4", duration: "1n" }
+                ],
+                options: ["라라랜드", "위대한 쇼맨", "비긴 어게인", "타이타닉"],
+                answer: "타이타닉",
+            },
+            { // 7. 미션 임파서블
+                bpm: 170,
+                melody: [
+                    { time: '0:0', note: "G5", duration: "8n" }, { time: '0:0:2', note: "G5", duration: "8n" }, { time: '0:1', note: "A#5", duration: "4n" }, { time: '0:2', note: "C6", duration: "4n" },
+                    { time: '0:3', note: "G5", duration: "8n" }, { time: '0:3:2', note: "G5", duration: "8n" }, { time: '1:0', note: "F5", duration: "4n" }, { time: '1:1', note: "F#5", duration: "4n" },
+                    { time: '1:2', note: "G5", duration: "8n" }, { time: '1:2:2', note: "G5", duration: "8n" }, { time: '1:3', note: "A#5", duration: "4n" }, { time: '2:0', note: "C6", duration: "4n" },
+                    { time: '2:1', note: "G5", duration: "8n" }, { time: '2:1:2', note: "G5", duration: "8n" }, { time: '2:2', note: "F5", duration: "4n" }, { time: '2:3', note: "F#5", duration: "4n" }
+                ],
+                options: ["007 시리즈", "본 시리즈", "미션 임파서블", "킹스맨"],
+                answer: "미션 임파서블",
+            },
+            { // 8. 인터스텔라
+                bpm: 70,
+                melody: [
+                    { time: '0:0', note: "C4", duration: "4n" }, { time: '0:1', note: "G4", duration: "4n" }, { time: '0:2', note: "F#4", duration: "4n" }, { time: '0:3', note: "G4", duration: "4n" },
+                    { time: '1:0', note: "C4", duration: "4n" }, { time: '1:1', note: "G4", duration: "4n" }, { time: '1:2', note: "E4", duration: "4n" }, { time: '1:3', note: "G4", duration: "4n" },
+                    { time: '2:0', note: "C4", duration: "4n" }, { time: '2:1', note: "A4", duration: "4n" }, { time: '2:2', note: "G#4", duration: "4n" }, { time: '2:3', note: "A4", duration: "4n" },
+                    { time: '3:0', note: "C4", duration: "4n" }, { time: '3:1', note: "A4", duration: "4n" }, { time: '3:2', note: "F#4", duration: "4n" }, { time: '3:3', note: "A4", duration: "4n" }
+                ],
+                options: ["인터스텔라", "그래비티", "혹성탈출", "인셉션"],
+                answer: "인터스텔라",
+            },
+            { // 9. 어벤져스
+                bpm: 130,
+                melody: [
+                    { time: '0:0', note: "E4", duration: "8n" }, { time: '0:0:2', note: "G4", duration: "8n" }, { time: '0:1', note: "C5", duration: "4n" }, { time: '0:2', note: "E4", duration: "8n" }, { time: '0:2:2', note: "G4", duration: "8n" }, { time: '0:3', note: "B4", duration: "4n" },
+                    { time: '1:0', note: "E4", duration: "8n" }, { time: '1:0:2', note: "G4", duration: "8n" }, { time: '1:1', note: "A4", duration: "4n" }, { time: '1:2', note: "G4", duration: "2n" },
+                    { time: '2:0', note: "D4", duration: "8n" }, { time: '2:0:2', note: "F#4", duration: "8n" }, { time: '2:1', note: "B4", duration: "4n" }, { time: '2:2', note: "D4", duration: "8n" }, { time: '2:2:2', note: "F#4", duration: "8n" }, { time: '2:3', note: "A4", duration: "4n" }
+                ],
+                options: ["어벤져스", "다크 나이트", "맨 오브 스틸", "스파이더맨"],
+                answer: "어벤져스",
+            },
+            { // 10. 하울의 움직이는 성
+                bpm: 90,
+                melody: [
+                    { time: '0:0', note: "D5", duration: "4n" }, { time: '0:1', note: "A#4", duration: "4n" }, { time: '0:2', note: "G4", duration: "4n" }, { time: '0:3', note: "D4", duration: "4n" },
+                    { time: '1:0', note: "G4", duration: "4n" }, { time: '1:1', note: "A#4", duration: "4n" }, { time: '1:2', note: "D5", duration: "2n" },
+                    { time: '2:0', note: "E5", duration: "4n" }, { time: '2:1', note: "C5", duration: "4n" }, { time: '2:2', note: "A4", duration: "4n" }, { time: '2:3', note: "E4", duration: "4n" },
+                    { time: '3:0', note: "A4", duration: "4n" }, { time: '3:1', note: "C5", duration: "4n" }, { time: '3:2', note: "E5", duration: "2n" }
+                ],
+                options: ["하울의 움직이는 성", "센과 치히로의 행방불명", "이웃집 토토로", "모노노케 히메"],
+                answer: "하울의 움직이는 성",
+            },
+            // ... (다른 곡들도 유사하게 확장 가능)
         ];
 
         // --- 2. DOM 요소 & 오디오 객체 ---
-        // (이 부분은 이전과 동일)
         const startScreen = document.getElementById('start-screen');
         const quizScreen = document.getElementById('quiz-screen');
         const endScreen = document.getElementById('end-screen');
-
         const startBtn = document.getElementById('start-btn');
         const restartBtn = document.getElementById('restart-btn');
         const playMelodyBtn = document.getElementById('play-melody-btn');
-
         const progressElem = document.getElementById('progress');
         const scoreElem = document.getElementById('score');
         const optionsContainer = document.getElementById('options-container');
@@ -281,17 +319,11 @@
         }
 
         function setupAudio() {
-             // 더 풍부한 소리를 내는 FMSynth 사용 및 리버브 효과 추가
-            synth = new Tone.FMSynth({
+            synth = new Tone.PolySynth(Tone.FMSynth, {
                 harmonicity: 3,
                 modulationIndex: 10,
-                detune: 0,
-                oscillator: { type: "sine" },
                 envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 1 },
-                modulation: { type: "square" },
-                modulationEnvelope: { attack: 0.5, decay: 0, sustain: 1, release: 0.5 }
             }).toDestination();
-            
             reverb = new Tone.Reverb(1.5).toDestination();
             synth.connect(reverb);
         }
@@ -313,13 +345,20 @@
             showQuestion();
         }
 
-        function showQuestion() {
+        function stopMelody() {
             if (currentPart) {
-                currentPart.stop(); // 이전 파트 정지
-                Tone.Transport.cancel(); // 예약된 이벤트 취소
+                currentPart.stop();
+                currentPart.dispose();
             }
-            playMelodyBtn.disabled = false;
+            Tone.Transport.stop();
+            Tone.Transport.cancel();
             isMelodyPlaying = false;
+            playMelodyBtn.disabled = true; // 일단 비활성화
+        }
+
+        function showQuestion() {
+            stopMelody();
+            playMelodyBtn.disabled = false; // 새 질문에서 다시 활성화
 
             const currentQuestion = gameQuestions[currentQuestionIndex];
             
@@ -342,33 +381,31 @@
             playMelodyBtn.disabled = true;
 
             const currentQuestion = gameQuestions[currentQuestionIndex];
-            
-            // 각 곡의 BPM 설정
             Tone.Transport.bpm.value = currentQuestion.bpm || 120;
 
-            // Tone.Part를 사용하여 정확한 타이밍에 노트 연주
             currentPart = new Tone.Part((time, value) => {
                 synth.triggerAttackRelease(value.note, value.duration, time);
             }, currentQuestion.melody).start(0);
-
-            // 멜로디 길이 계산
+            
             const lastNote = currentQuestion.melody[currentQuestion.melody.length - 1];
             const durationInSeconds = Tone.Time(lastNote.time).toSeconds() + Tone.Time(lastNote.duration).toSeconds();
 
             Tone.Transport.start();
             
-            // 연주가 끝나면 Transport를 멈추고 버튼 활성화
+            currentPart.stop(`+${durationInSeconds}`);
+            
             setTimeout(() => {
                 Tone.Transport.stop();
                 isMelodyPlaying = false;
-                if(quizScreen.classList.contains('active')){ // 퀴즈 화면일때만 버튼 활성화
+                if(quizScreen.classList.contains('active')){
                     playMelodyBtn.disabled = false;
                 }
-            }, (durationInSeconds + 0.5) * 1000); // 0.5초 여유
+            }, (durationInSeconds + 0.5) * 1000);
         }
 
         function selectAnswer(selectedOption, button) {
-            // (이 부분은 이전과 동일)
+            stopMelody(); // 답 선택 시 즉시 멜로디 중지
+            
             const currentQuestion = gameQuestions[currentQuestionIndex];
             const isCorrect = selectedOption === currentQuestion.answer;
             
@@ -398,9 +435,7 @@
         }
 
         function showEndScreen() {
-            if (currentPart) currentPart.stop();
-            Tone.Transport.stop();
-
+            stopMelody();
             quizScreen.classList.remove('active');
             endScreen.classList.add('active');
             const maxScore = gameQuestions.length * 10;
@@ -417,4 +452,3 @@
     </script>
 </body>
 </html>
-
